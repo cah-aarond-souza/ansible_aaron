@@ -1,0 +1,59 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install updates (CentOS)
+    tags: always
+    yum:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
+  
+  - name: Install updates (Ubuntu)
+    tags: always
+    apt:   
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+      
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: Install apache package and add php support for CentOS
+    tags: apache,centos,httpd
+    yum:
+      name:
+        - httpd
+        - php
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: Install apache package and add php support for Ubuntu
+    tags: apche,apache2,ubuntu
+    apt:    
+      name:
+        - apache2                 
+        - libapache2-mod-php                
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+       
+- hosts: db_servers
+  become: true
+  tasks: 
+
+  - name: Install mariadb package (CentOs)
+    tags: centos,db,mariadb 
+    yum: 
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "CentOs"
+
+  - name: Install mariadb package (Ubuntu)
+    tags: db,mariadb,ubuntu
+    apt: 
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ububtu"

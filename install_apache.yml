@@ -4,16 +4,21 @@
   become: true
   tasks:
 
-  - name: install apache2 package
+  - name: Install apache package and add php support for CentOS
     yum:
-      name: httpd
+      name:
+        - httpd
+        - php
       state: latest
-    when: ansible_distribution == "CentOS" and ansible_distribution_version == "8.2"
+      update_cache: yes
+    when: ansible_distribution == "Centos"
 
-  - name: add php support for apache
-    yum:
-      name: php
+  - name: Install apache package and add php support for Ubuntu
+    apt:    
+      name:
+        - apche2                 
+        - libapache2-mod-php                
       state: latest
-    when: ansible_distribution == "CentOS"
- 
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
        
