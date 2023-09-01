@@ -6,3 +6,6 @@ root@10.205.125.162
 
 [file_servers]
 172.16.250.134 
+
+[workstations]
+root@10.205.125.162
