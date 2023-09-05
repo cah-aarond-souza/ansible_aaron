@@ -4,19 +4,29 @@
   become: true
   pre_tasks:
 
-  - name: Install updates (CentOS)
+  - name: update repo cache (CentOS)
     tags: always
     yum:
-      update_only: yes
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "CentOS"
   
-  - name: Install updates (Ubuntu)
+  - name: update repo cache (Ubuntu)
     tags: always
     apt:   
-      upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: add ssh key for simone
+    tags: always
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ19dyzFPk178vPv67aYFG1N6ws1oGovuScoEVvint+ ansible"
 
 - hosts: workstations
   become: true
@@ -28,9 +38,9 @@
 
   - name: install terraform
     unarchive:
-      srs: https://releases.hashicorp.com/terraform/1.5.3/terraform_1.5.3_linux_arm64.zip
+      src: https://releases.hashicorp.com/terraform/1.5.3/terraform_1.5.3_linux_arm64.zip
       dest: /usr/local/bin
-      remote src: yes
+      remote_src: yes
       mode: 0755
       owner: root
       group: root
@@ -47,6 +57,30 @@
         - php
       state: latest
     when: ansible_distribution == "CentOS"
+
+  - name: Start httpd (CentOS)
+    tags: apache,https,centos
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS"      
+
+  - name: change e-mail address for admin
+    tags: apache,centOS,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    when: ansible_distribution == "CentOS"
+    register: httpd
+
+  -  name: restart httpd (CentOS)
+     tags: apache,centos,httpd
+     service: 
+       name: httpd
+       state: restarted
+     when: httpd.changed
 
   - name: Install apache package and add php support for Ubuntu
     tags: apche,apache2,ubuntu
